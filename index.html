@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Analizador de Logs Linux</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Analizador de Logs</h1>
+
+<input type="file" id="fileInput">
+<br>
+
+<label for="search">Buscar (IP, error, login, etc.):</label>
+<input type="text" id="search">
+<button onclick="filterLogs()">Buscar</button>
+
+<div id="alerts"></div>
+
+<table id="logTable">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>IP</th>
+            <th>Evento</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Aquí enlazamos el archivo JavaScript externo -->
+<script src="scripts.js"></script>
+
+</body>
+</html>
