@@ -1,8 +1,11 @@
+<!-- Página HTML para analizar logs Apache y FTP -->
+ 
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Analizador de Logs</title>
+    <!-- Estilos básicos para la tabla -->
     <style>
         table, th, td {
             border: 1px solid black;
@@ -14,11 +17,13 @@
         .alert { color: red; }
         .success { color: green; }
     </style>
+    <!-- Archivo de estilos externo -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h1>Analizador de Logs - FTP & Apache</h1>
 
+    <!-- Subida de archivo de log -->
     <input type="file" id="fileInput">
     <select id="logType">
         <option value="apache">Apache</option>
@@ -27,8 +32,8 @@
     <button onclick="uploadFile()">Subir Log</button>
     <button onclick="reloadLogs()">Recargar Log</button>
 
+    <!-- Buscador y acciones extra -->
     <br><br>
-
     <input type="text" id="search" placeholder="Buscar..." oninput="filterLogs()">
     <button onclick="copySelected()">Copiar Seleccionados</button>
     <button onclick="showErrorsOnly()">Mostrar Errores</button>
@@ -36,6 +41,7 @@
     <div id="alerts"></div>
     <br>
 
+    <!-- Tabla para mostrar los logs -->
     <table id="logTable">
         <thead>
             <tr>
@@ -53,19 +59,20 @@
         <button onclick="toggleChart()">📊 Ver Gráficas</button>
     </div>
 
-    <!-- Contenedor de gráfica -->
+    <!-- Contenedor de la gráfica -->
     <div id="chartContainer" style="display:none; max-width: 400px; margin: 20px auto;">
         <canvas id="eventChart"></canvas>
     </div>
 
-    <!-- Chart.js -->
+    <!-- Librería Chart.js para gráficas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        let logs = [];
+        let logs = []; // Aquí se guardan los logs cargados
         let chartVisible = false;
         let eventChart;
 
+        // Función para subir un archivo al backend
         function uploadFile() {
             const file = document.getElementById('fileInput').files[0];
             const type = document.getElementById('logType').value;
@@ -78,15 +85,17 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content, type })
-                }).then(() => loadLogs(type));
+                }).then(() => loadLogs(type)); // Recarga los logs después de subir
             };
             reader.readAsText(file);
         }
 
+        // Función para obtener logs del servidor y mostrarlos
         function loadLogs(type = document.getElementById('logType').value) {
             fetch(`http://localhost:3001/api/logs/${type}`)
                 .then(res => res.json())
                 .then(data => {
+                    // Formatea los datos para mostrarlos en la tabla
                     logs = data.logs.map(entry => ({
                         fecha: entry.fecha,
                         ip: entry.ip,
@@ -96,11 +105,13 @@
                 });
         }
 
+        // Recarga logs desde un archivo local (en el servidor)
         function reloadLogs() {
             fetch('http://localhost:3001/api/logs/reload')
                 .then(() => loadLogs());
         }
 
+        // Muestra los logs en la tabla HTML
         function renderTable(data) {
             const tbody = document.querySelector('#logTable tbody');
             tbody.innerHTML = '';
@@ -115,6 +126,7 @@
             });
         }
 
+        // Filtra los logs según lo que el usuario escribe en el buscador
         function filterLogs() {
             const query = document.getElementById('search').value.toLowerCase();
             const filtered = logs.filter(entry =>
@@ -125,6 +137,7 @@
             renderTable(filtered);
         }
 
+        // Copia los logs seleccionados al portapapeles
         function copySelected() {
             const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
                 .map(cb => cb.closest('tr').innerText)
@@ -132,6 +145,7 @@
             navigator.clipboard.writeText(selected);
         }
 
+        // Muestra solo los eventos que contienen errores o fallos
         function showErrorsOnly() {
             const filtered = logs.filter(log =>
                 log.evento.toLowerCase().includes('error') ||
@@ -140,6 +154,7 @@
             renderTable(filtered);
         }
 
+        // Alterna la visibilidad del gráfico de eventos
         function toggleChart() {
             const chartDiv = document.getElementById('chartContainer');
             chartVisible = !chartVisible;
@@ -147,6 +162,7 @@
             if (chartVisible) renderChart();
         }
 
+        // Dibuja el gráfico con los tipos de eventos
         function renderChart() {
             const eventCounts = {};
 
@@ -160,7 +176,7 @@
 
             const ctx = document.getElementById('eventChart').getContext('2d');
 
-            if (eventChart) eventChart.destroy();
+            if (eventChart) eventChart.destroy(); // Elimina gráfico anterior si existe
             eventChart = new Chart(ctx, {
                 type: 'pie',
                 data: {
@@ -182,6 +198,7 @@
             });
         }
 
+        // Clasifica el tipo de evento para usarlo en el gráfico
         function getTipoEvento(evento) {
             evento = evento.toLowerCase();
             if (evento.includes('failed') || evento.includes('fail')) return 'Fallidos';
