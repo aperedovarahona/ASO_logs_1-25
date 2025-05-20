@@ -2,35 +2,129 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Analizador de Logs Linux</title>
+    <title>Analizador de Logs</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 4px 8px;
+        }
+        .alert { color: red; }
+        .success { color: green; }
+    </style>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <h1>Analizador de Logs - FTP & Apache</h1>
 
-<h1>Analizador de Logs</h1>
+    <input type="file" id="fileInput">
+    <select id="logType">
+        <option value="apache">Apache</option>
+        <option value="ftp">FTP</option>
+    </select>
+    <button onclick="uploadFile()">Subir Log</button>
+    <button onclick="reloadLogs()">Recargar Log</button>
 
-<input type="file" id="fileInput">
-<br>
+    <br><br>
 
-<label for="search">Buscar (IP, error, login, etc.):</label>
-<input type="text" id="search">
-<button onclick="filterLogs()">Buscar</button>
+    <input type="text" id="search" placeholder="Buscar..." oninput="filterLogs()">
+    <button onclick="copySelected()">Copiar Seleccionados</button>
+    <button onclick="showErrorsOnly()">Mostrar Errores</button>
 
-<div id="alerts"></div>
+    <div id="alerts"></div>
+    <br>
 
-<table id="logTable">
-    <thead>
-        <tr>
-            <th>Fecha</th>
-            <th>IP</th>
-            <th>Evento</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+    <table id="logTable">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Fecha</th>
+                <th>IP</th>
+                <th>Evento</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-<!-- Aquí enlazamos el archivo JavaScript externo -->
-<script src="scripts.js"></script>
+    <script>
+        let logs = [];
 
+        function uploadFile() {
+            const file = document.getElementById('fileInput').files[0];
+            const type = document.getElementById('logType').value;
+            if (!file) return alert('Selecciona un archivo');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                fetch('http://localhost:3001/api/logs/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, type })
+                })
+                .then(() => loadLogs(type));
+            };
+            reader.readAsText(file);
+        }
+
+        function loadLogs(type = document.getElementById('logType').value) {
+            fetch(`http://localhost:3001/api/logs/${type}`)
+                .then(res => res.json())
+                .then(data => {
+                    logs = data.logs.map(entry => ({
+                        fecha: entry.fecha,
+                        ip: entry.ip,
+                        evento: entry.metodo ? `${entry.metodo} ${entry.recurso} (${entry.codigo})` : `${entry.accion} ${entry.archivo || ''} [${entry.estado}]`
+                    }));
+                    renderTable(logs);
+                });
+        }
+
+        function reloadLogs() {
+            fetch('http://localhost:3001/api/logs/reload')
+                .then(() => loadLogs());
+        }
+
+        function renderTable(data) {
+            const tbody = document.querySelector('#logTable tbody');
+            tbody.innerHTML = '';
+            data.forEach(entry => {
+                const row = `<tr>
+                    <td><input type="checkbox"></td>
+                    <td>${entry.fecha}</td>
+                    <td>${entry.ip}</td>
+                    <td>${entry.evento}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function filterLogs() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = logs.filter(entry =>
+                entry.fecha.toLowerCase().includes(query) ||
+                entry.ip.toLowerCase().includes(query) ||
+                entry.evento.toLowerCase().includes(query)
+            );
+            renderTable(filtered);
+        }
+
+        function copySelected() {
+            const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.closest('tr').innerText)
+                .join('\n');
+            navigator.clipboard.writeText(selected);
+        }
+
+        function showErrorsOnly() {
+            const filtered = logs.filter(log =>
+                log.evento.toLowerCase().includes('error') ||
+                log.evento.toLowerCase().includes('fail')
+            );
+            renderTable(filtered);
+        }
+    </script>
 </body>
 </html>
