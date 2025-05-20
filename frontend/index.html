@@ -48,8 +48,23 @@
         <tbody></tbody>
     </table>
 
+    <!-- Botón para mostrar gráficas -->
+    <div style="position: fixed; bottom: 20px; right: 20px;">
+        <button onclick="toggleChart()">📊 Ver Gráficas</button>
+    </div>
+
+    <!-- Contenedor de gráfica -->
+    <div id="chartContainer" style="display:none; max-width: 400px; margin: 20px auto;">
+        <canvas id="eventChart"></canvas>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         let logs = [];
+        let chartVisible = false;
+        let eventChart;
 
         function uploadFile() {
             const file = document.getElementById('fileInput').files[0];
@@ -63,8 +78,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content, type })
-                })
-                .then(() => loadLogs(type));
+                }).then(() => loadLogs(type));
             };
             reader.readAsText(file);
         }
@@ -124,6 +138,58 @@
                 log.evento.toLowerCase().includes('fail')
             );
             renderTable(filtered);
+        }
+
+        function toggleChart() {
+            const chartDiv = document.getElementById('chartContainer');
+            chartVisible = !chartVisible;
+            chartDiv.style.display = chartVisible ? 'block' : 'none';
+            if (chartVisible) renderChart();
+        }
+
+        function renderChart() {
+            const eventCounts = {};
+
+            logs.forEach(log => {
+                const tipo = getTipoEvento(log.evento);
+                eventCounts[tipo] = (eventCounts[tipo] || 0) + 1;
+            });
+
+            const labels = Object.keys(eventCounts);
+            const data = Object.values(eventCounts);
+
+            const ctx = document.getElementById('eventChart').getContext('2d');
+
+            if (eventChart) eventChart.destroy();
+            eventChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Eventos',
+                        data: data,
+                        backgroundColor: [
+                            '#ff6384', '#36a2eb', '#ffcd56', '#4bc0c0', '#9966ff', '#ff9f40'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        function getTipoEvento(evento) {
+            evento = evento.toLowerCase();
+            if (evento.includes('failed') || evento.includes('fail')) return 'Fallidos';
+            if (evento.includes('login')) return 'Login';
+            if (evento.includes('upload')) return 'Upload';
+            if (evento.includes('download')) return 'Download';
+            if (evento.includes('error')) return 'Error';
+            return 'Otros';
         }
     </script>
 </body>

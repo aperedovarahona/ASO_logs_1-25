@@ -1,78 +1,41 @@
-let logs = [];
+function renderEventChart() {
+    const eventCounts = {};
 
-document.getElementById('fileInput').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const content = e.target.result;
-        processLogs(content);
-    };
-    reader.readAsText(file);
-});
+    logs.forEach(log => {
+        const tipo = detectarTipoEvento(log.evento);
+        eventCounts[tipo] = (eventCounts[tipo] || 0) + 1;
+    });
 
-function processLogs(content) {
-    const lines = content.split('\n');
-    logs = lines.map(line => parseLog(line)).filter(entry => entry);
-    renderTable(logs);
-    detectSuspiciousEvents();
-}
+    const labels = Object.keys(eventCounts);
+    const data = Object.values(eventCounts);
 
-function parseLog(line) {
-    // Detectar formato simple: [fecha] IP evento
-    const regex = /\[([^\]]+)\]\s+(\d{1,3}(?:\.\d{1,3}){3})\s+(.*)/;
-    const match = line.match(regex);
-    if (match) {
-        return {
-            fecha: match[1],
-            ip: match[2],
-            evento: match[3]
-        };
+    const ctx = document.getElementById('eventChart').getContext('2d');
+    if (window.eventChart) {
+        window.eventChart.destroy();
     }
-    return null;
-}
-
-function renderTable(data) {
-    const tbody = document.querySelector('#logTable tbody');
-    tbody.innerHTML = '';
-    data.forEach(entry => {
-        const row = `<tr>
-            <td>${entry.fecha}</td>
-            <td>${entry.ip}</td>
-            <td>${entry.evento}</td>
-        </tr>`;
-        tbody.innerHTML += row;
+    window.eventChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Distribución de eventos',
+                data,
+                backgroundColor: [
+                    '#ff6384', '#36a2eb', '#ffcd56', '#4bc0c0', '#9966ff', '#ff9f40'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
     });
 }
 
-function filterLogs() {
-    const query = document.getElementById('search').value.toLowerCase();
-    const filtered = logs.filter(entry =>
-        entry.fecha.toLowerCase().includes(query) ||
-        entry.ip.toLowerCase().includes(query) ||
-        entry.evento.toLowerCase().includes(query)
-    );
-    renderTable(filtered);
-}
-
-function detectSuspiciousEvents() {
-    const failedLogins = logs.filter(log => log.evento.toLowerCase().includes('failed login'));
-    const ipCounts = {};
-
-    failedLogins.forEach(log => {
-        ipCounts[log.ip] = (ipCounts[log.ip] || 0) + 1;
-    });
-
-    const suspiciousIPs = Object.entries(ipCounts).filter(([ip, count]) => count >= 5);
-
-    const alertDiv = document.getElementById('alerts');
-    if (suspiciousIPs.length > 0) {
-        alertDiv.innerHTML = '<p class="alert">⚠️ IPs sospechosas detectadas:</p>';
-        suspiciousIPs.forEach(([ip, count]) => {
-            alertDiv.innerHTML += `<p class="alert">IP ${ip} con ${count} intentos fallidos</p>`;
-        });
-    } else {
-        alertDiv.innerHTML = '<p class="success">No se detectaron eventos sospechosos.</p>';
-    }
+function detectarTipoEvento(evento) {
+    evento = evento.toLowerCase();
+    if (evento.includes('failed login')) return 'Failed Login';
+    if (evento.includes('login')) return 'Login Exitoso';
+    if (evento.includes('upload')) return 'Subida';
+    if (evento.includes('download')) return 'Descarga';
+    return 'Otro';
 }

@@ -101,3 +101,10 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
 });
+function processLogs(content) {
+    const lines = content.split('\n');
+    logs = lines.map(line => parseLog(line)).filter(entry => entry);
+    renderTable(logs);
+    detectSuspiciousEvents();
+    renderEventChart(); // Asegúrate de llamar esto aquí
+}
