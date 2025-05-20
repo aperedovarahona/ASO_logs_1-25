@@ -1,9 +1,9 @@
-// backend/index.js
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = 3001;
@@ -35,17 +35,15 @@ function initializeDB() {
         estado TEXT
     )`);
 }
-
 initializeDB();
 
 // Cargar logs al backend
 app.post('/api/logs/upload', (req, res) => {
-    const { content, type } = req.body; // type: 'apache' o 'ftp'
+    const { content, type } = req.body;
     const lines = content.split('\n');
 
     if (type === 'apache') {
         const apacheRegex = /^(\S+) - - \[(.*?)\] "(\S+) (.*?) HTTP.*?" (\d{3}) .*?".*?" "(.*?)"/;
-
         const stmt = db.prepare(`INSERT INTO apache_logs (ip, fecha, metodo, recurso, codigo, user_agent) VALUES (?, ?, ?, ?, ?, ?)`);
         lines.forEach(line => {
             const match = line.match(apacheRegex);
@@ -59,7 +57,6 @@ app.post('/api/logs/upload', (req, res) => {
 
     } else if (type === 'ftp') {
         const ftpRegex = /\[(.*?)\] (\S+) (\S+) (upload|download|login|error) (.*?) (success|fail)/i;
-
         const stmt = db.prepare(`INSERT INTO ftp_logs (fecha, ip, usuario, accion, archivo, estado) VALUES (?, ?, ?, ?, ?, ?)`);
         lines.forEach(line => {
             const match = line.match(ftpRegex);
@@ -70,6 +67,7 @@ app.post('/api/logs/upload', (req, res) => {
         });
         stmt.finalize();
         res.send({ status: 'FTP logs cargados' });
+
     } else {
         res.status(400).send({ error: 'Tipo de log no soportado' });
     }
@@ -86,12 +84,18 @@ app.get('/api/logs/:type', (req, res) => {
     });
 });
 
-// Recargar logs (ejemplo básico desde archivo local)
+// Recargar logs (desde archivo)
 app.get('/api/logs/reload', (req, res) => {
     const content = fs.readFileSync('./logs/apache_example.log', 'utf8');
-    // Simula subir logs (puedes cambiar esto por un flujo similar al POST)
     req.body = { content, type: 'apache' };
     app._router.handle(req, res, () => {}, 'post');
+});
+
+// Servir frontend
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
 app.listen(PORT, () => {
