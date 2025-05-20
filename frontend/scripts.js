@@ -47,11 +47,13 @@ function renderTable(data) {
 }
 
 function filterLogs() {
+    document.getElementById('search').addEventListener('input', filterLogs);
     const query = document.getElementById('search').value.toLowerCase();
     const filtered = logs.filter(entry =>
         entry.fecha.toLowerCase().includes(query) ||
         entry.ip.toLowerCase().includes(query) ||
         entry.evento.toLowerCase().includes(query)
+        
     );
     renderTable(filtered);
 }
