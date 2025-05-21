@@ -1,53 +1,184 @@
-// Esta función genera un gráfico de pastel que muestra la cantidad de eventos por tipo
+let logs = [];
+let chartVisible = false;
+let eventPieChart;
+let eventBarChart;
 
-function renderEventChart() {
-    const eventCounts = {};
+function uploadFile() {
+  const file = document.getElementById('fileInput').files[0];
+  const type = document.getElementById('logType').value;
+  if (!file) return alert('Selecciona un archivo para subir');
 
-    // Recorre todos los logs y cuenta cuántos hay de cada tipo de evento
-    logs.forEach(log => {
-        const tipo = detectarTipoEvento(log.evento);
-        eventCounts[tipo] = (eventCounts[tipo] || 0) + 1;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const content = e.target.result;
+    fetch('http://localhost:3001/api/logs/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, type }),
+    }).then(() => loadLogs(type));
+  };
+  reader.readAsText(file);
+}
+
+function loadLogs(type = document.getElementById('logType').value) {
+  fetch(`http://localhost:3001/api/logs/${type}`)
+    .then((res) => res.json())
+    .then((data) => {
+      logs = data.logs.map((entry) => ({
+        fecha: entry.fecha,
+        ip: entry.ip,
+        evento: entry.metodo
+          ? `${entry.metodo} ${entry.recurso} (${entry.codigo})`
+          : `${entry.accion} ${entry.archivo || ''} [${entry.estado}]`,
+      }));
+      renderTable(logs);
     });
+}
 
-    // Extrae etiquetas (nombres de eventos) y datos (cantidad de cada uno)
-    const labels = Object.keys(eventCounts);
-    const data = Object.values(eventCounts);
+function reloadLogs() {
+  fetch('http://localhost:3001/api/logs/reload').then(() => loadLogs());
+}
 
-    // Obtiene el contexto del canvas para dibujar el gráfico
-    const ctx = document.getElementById('eventChart').getContext('2d');
+function renderTable(data) {
+  const tbody = document.querySelector('#logTable tbody');
+  tbody.innerHTML = '';
+  data.forEach((entry) => {
+    const row = `
+      <tr>
+        <td><input type="checkbox"></td>
+        <td>${entry.fecha}</td>
+        <td>${entry.ip}</td>
+        <td>${entry.evento}</td>
+      </tr>`;
+    tbody.innerHTML += row;
+  });
+}
 
-    // Si ya existe un gráfico, lo destruye para no duplicar
-    if (window.eventChart) {
-        window.eventChart.destroy();
-    }
+function filterLogs() {
+  const query = document.getElementById('search').value.toLowerCase();
+  const filtered = logs.filter(
+    (entry) =>
+      entry.fecha.toLowerCase().includes(query) ||
+      entry.ip.toLowerCase().includes(query) ||
+      entry.evento.toLowerCase().includes(query)
+  );
+  renderTable(filtered);
+}
 
-    // Crea el gráfico de tipo pastel
-    window.eventChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Distribución de eventos',
-                data,
-                backgroundColor: [
-                    '#ff6384', '#36a2eb', '#ffcd56', '#4bc0c0', '#9966ff', '#ff9f40'
-                ]
-            }]
+function copySelected() {
+  const selected = Array.from(
+    document.querySelectorAll('input[type="checkbox"]:checked')
+  ).map((checkbox) =>
+    checkbox.closest('tr').querySelectorAll('td')[3].textContent
+  );
+
+  if (!selected.length) {
+    alert('Selecciona al menos un log para copiar');
+    return;
+  }
+  navigator.clipboard.writeText(selected.join('\n'));
+  alert('Logs copiados al portapapeles');
+}
+
+function showErrorsOnly() {
+  const errors = logs.filter((entry) =>
+    entry.evento.toLowerCase().includes('error')
+  );
+  renderTable(errors);
+}
+
+// Obtener tipo general de evento para clasificación
+function getTipoEvento(evento) {
+  if (evento.includes('GET')) return 'GET';
+  if (evento.includes('POST')) return 'POST';
+  if (evento.toLowerCase().includes('error')) return 'Error';
+  if (evento.toLowerCase().includes('login')) return 'Login';
+  return 'Otros';
+}
+
+function renderCharts() {
+  const eventCounts = {};
+  logs.forEach((log) => {
+    const tipo = getTipoEvento(log.evento);
+    eventCounts[tipo] = (eventCounts[tipo] || 0) + 1;
+  });
+
+  const labels = Object.keys(eventCounts);
+  const data = Object.values(eventCounts);
+
+  // Gráfico de pastel
+  const ctxPie = document.getElementById('eventPieChart').getContext('2d');
+  if (eventPieChart) eventPieChart.destroy();
+
+  eventPieChart = new Chart(ctxPie, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Eventos',
+          data,
+          backgroundColor: [
+  '#ff6384',
+  '#36a2eb',
+  '#ffcd56',
+  '#4bc0c0',
+  '#9966ff',
+  '#ff9f40',
+]
+
         },
-        options: {
-            responsive: true // Se ajusta al tamaño del contenedor
-        }
-    });
+      ],
+    },
+   options: {
+  responsive: false,
+  maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' },
+      },
+    },
+  });
+
+  // Gráfico de barras
+  const ctxBar = document.getElementById('eventBarChart').getContext('2d');
+  if (eventBarChart) eventBarChart.destroy();
+
+  eventBarChart = new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Cantidad de eventos',
+          data,
+          backgroundColor: '#36a2eb',
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+      },
+    },
+  });
 }
 
-// Esta función detecta el tipo de evento a partir del texto
-function detectarTipoEvento(evento) {
-    evento = evento.toLowerCase(); // Convierte el texto a minúsculas para comparar mejor
-
-    // Clasifica el tipo de evento según palabras clave
-    if (evento.includes('failed login')) return 'Failed Login';
-    if (evento.includes('login')) return 'Login Exitoso';
-    if (evento.includes('upload')) return 'Subida';
-    if (evento.includes('download')) return 'Descarga';
-    return 'Otro'; // Si no coincide con nada, lo clasifica como 'Otro'
+function toggleChart() {
+  const container = document.getElementById('chartContainer');
+  chartVisible = !chartVisible;
+  container.style.display = chartVisible ? 'flex' : 'none';
+  if (chartVisible) renderCharts();
 }
+
+// Carga inicial
+window.onload = () => {
+  loadLogs();
+};

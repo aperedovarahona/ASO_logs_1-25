@@ -1,213 +1,250 @@
-<!-- Página HTML para analizar logs Apache y FTP -->
- 
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Analizador de Logs</title>
-    <!-- Estilos básicos para la tabla -->
-    <style>
-        table, th, td {
-            border: 1px solid black;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 4px 8px;
-        }
-        .alert { color: red; }
-        .success { color: green; }
-    </style>
-    <!-- Archivo de estilos externo -->
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analizador de Logs - FTP & Apache</title>
+  <link rel="stylesheet" href="style.css" />
+
 </head>
 <body>
-    <h1>Analizador de Logs - FTP & Apache</h1>
+  <!-- Título principal -->
+  <h1>📊 Analizador de Logs - FTP & Apache</h1>
 
-    <!-- Subida de archivo de log -->
-    <input type="file" id="fileInput">
+  <!-- Contenedor principal con flex para controles y gráfico lado a lado -->
+<section id="controlsChartContainer" style="display:flex; gap:30px; align-items:flex-start;">
+  <!-- Controles -->
+  <div id="controlsContainer" style="flex: 1; max-width: 300px;">
+    <label for="fileInput">Seleccionar archivo de log:</label>
+    <input type="file" id="fileInput" />
+
+    <label for="logType">Tipo de log:</label>
     <select id="logType">
-        <option value="apache">Apache</option>
-        <option value="ftp">FTP</option>
+      <option value="apache">Apache</option>
+      <option value="ftp">FTP</option>
     </select>
+
     <button onclick="uploadFile()">Subir Log</button>
-    <button onclick="reloadLogs()">Recargar Log</button>
+    <button onclick="reloadLogs()">🔄 Recargar Log</button>
+    <button onclick="toggleChart()">📈 Ver Gráficas</button>
+  </div>
 
-    <!-- Buscador y acciones extra -->
-    <br><br>
-    <input type="text" id="search" placeholder="Buscar..." oninput="filterLogs()">
-    <button onclick="copySelected()">Copiar Seleccionados</button>
-    <button onclick="showErrorsOnly()">Mostrar Errores</button>
-
-    <div id="alerts"></div>
-    <br>
-
-    <!-- Tabla para mostrar los logs -->
-    <table id="logTable">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Fecha</th>
-                <th>IP</th>
-                <th>Evento</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <!-- Botón para mostrar gráficas -->
-    <div style="position: fixed; bottom: 20px; right: 20px;">
-        <button onclick="toggleChart()">📊 Ver Gráficas</button>
+  <!-- Contenedor del gráfico -->
+  <div id="chartContainer" style="flex: 2; display:none; gap: 20px; align-items: center; display: flex;">
+    <div class="chart-wrapper">
+      <canvas id="barChart" width="250" height="250"></canvas>
     </div>
-
-    <!-- Contenedor de la gráfica -->
-    <div id="chartContainer" style="display:none; max-width: 400px; margin: 20px auto;">
-        <canvas id="eventChart"></canvas>
+    <div class="chart-wrapper">
+      <canvas id="pieChart" width="250" height="250"></canvas>
     </div>
+  </div>
+</section>
 
-    <!-- Librería Chart.js para gráficas -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Herramientas de búsqueda y filtrado - fuera del flex -->
+<section id="searchContainer" style="margin-top: 20px; max-width: 600px;">
+  <input
+    type="text"
+    id="search"
+    placeholder="🔍 Buscar en los logs..."
+    oninput="filterLogs()"
+    style="width: 100%; padding: 8px; font-size: 1rem;"
+  />
+  <div style="margin-top: 10px;">
+    <button onclick="copySelected()">📋 Copiar Seleccionados</button>
+    <button onclick="showErrorsOnly()">⚠️ Mostrar Errores</button>
+  </div>
+</section>
 
-    <script>
-        let logs = []; // Aquí se guardan los logs cargados
-        let chartVisible = false;
-        let eventChart;
 
-        // Función para subir un archivo al backend
-        function uploadFile() {
-            const file = document.getElementById('fileInput').files[0];
-            const type = document.getElementById('logType').value;
-            if (!file) return alert('Selecciona un archivo');
+  <!-- Mensajes de alerta -->
+  <div id="alerts" class="alert"></div>
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const content = e.target.result;
-                fetch('http://localhost:3001/api/logs/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content, type })
-                }).then(() => loadLogs(type)); // Recarga los logs después de subir
-            };
-            reader.readAsText(file);
+  <!-- Tabla de logs -->
+  <table id="logTable" border="1">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Fecha</th>
+        <th>IP</th>
+        <th>Evento</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Librería Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Script principal -->
+  <script>
+    let logs = [];
+    let chartVisible = false;
+    let barChart;
+    let pieChart;
+
+    function uploadFile() {
+      const file = document.getElementById('fileInput').files[0];
+      const type = document.getElementById('logType').value;
+      if (!file) return alert('Selecciona un archivo para subir');
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const content = e.target.result;
+        fetch('http://localhost:3001/api/logs/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, type }),
+        }).then(() => loadLogs(type));
+      };
+      reader.readAsText(file);
+    }
+
+    function loadLogs(type = document.getElementById('logType').value) {
+      fetch(`http://localhost:3001/api/logs/${type}`)
+        .then((res) => res.json())
+        .then((data) => {
+          logs = data.logs.map((entry) => ({
+            fecha: entry.fecha,
+            ip: entry.ip,
+            evento: entry.metodo
+              ? `${entry.metodo} ${entry.recurso} (${entry.codigo})`
+              : `${entry.accion} ${entry.archivo || ''} [${entry.estado}]`,
+          }));
+          renderTable(logs);
+        });
+    }
+
+    function reloadLogs() {
+      fetch('http://localhost:3001/api/logs/reload').then(() => loadLogs());
+    }
+
+    function renderTable(data) {
+      const tbody = document.querySelector('#logTable tbody');
+      tbody.innerHTML = '';
+      data.forEach((entry) => {
+        const row = `
+          <tr>
+            <td><input type="checkbox"></td>
+            <td>${entry.fecha}</td>
+            <td>${entry.ip}</td>
+            <td>${entry.evento}</td>
+          </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function filterLogs() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const filtered = logs.filter(
+        (entry) =>
+          entry.fecha.toLowerCase().includes(query) ||
+          entry.ip.toLowerCase().includes(query) ||
+          entry.evento.toLowerCase().includes(query)
+      );
+      renderTable(filtered);
+    }
+
+    function copySelected() {
+      const selected = Array.from(
+        document.querySelectorAll('input[type="checkbox"]:checked')
+      )
+        .map((cb) => cb.closest('tr').innerText)
+        .join('\n');
+      navigator.clipboard.writeText(selected);
+      alert('Logs copiados al portapapeles');
+    }
+
+    function showErrorsOnly() {
+      const filtered = logs.filter(
+        (log) =>
+          log.evento.toLowerCase().includes('error') ||
+          log.evento.toLowerCase().includes('fail')
+      );
+      renderTable(filtered);
+    }
+
+    function toggleChart() {
+      const chartDiv = document.getElementById('chartContainer');
+      chartVisible = !chartVisible;
+      chartDiv.style.display = chartVisible ? 'flex' : 'none';
+      if (chartVisible) renderCharts();
+    }
+
+    function renderCharts() {
+      const eventCounts = {};
+      logs.forEach((log) => {
+        const tipo = getTipoEvento(log.evento);
+        eventCounts[tipo] = (eventCounts[tipo] || 0) + 1;
+      });
+
+      const labels = Object.keys(eventCounts);
+      const data = Object.values(eventCounts);
+
+      // Bar Chart
+      const barCtx = document.getElementById('barChart').getContext('2d');
+      if (barChart) barChart.destroy();
+      barChart = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Cantidad de eventos',
+            data,
+            backgroundColor: '#36a2eb',
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } },
+          },
+          plugins: {
+            legend: { display: false }
+          }
         }
+      });
 
-        // Función para obtener logs del servidor y mostrarlos
-        function loadLogs(type = document.getElementById('logType').value) {
-            fetch(`http://localhost:3001/api/logs/${type}`)
-                .then(res => res.json())
-                .then(data => {
-                    // Formatea los datos para mostrarlos en la tabla
-                    logs = data.logs.map(entry => ({
-                        fecha: entry.fecha,
-                        ip: entry.ip,
-                        evento: entry.metodo ? `${entry.metodo} ${entry.recurso} (${entry.codigo})` : `${entry.accion} ${entry.archivo || ''} [${entry.estado}]`
-                    }));
-                    renderTable(logs);
-                });
+      // Pie Chart
+      const pieCtx = document.getElementById('pieChart').getContext('2d');
+      if (pieChart) pieChart.destroy();
+      pieChart = new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Eventos',
+            data,
+            backgroundColor: [
+  '#ff6384',
+  '#36a2eb',
+  '#ffcd56',
+  '#4bc0c0',
+  '#9966ff',
+  '#ff9f40',
+]
+
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
         }
+      });
+    }
 
-        // Recarga logs desde un archivo local (en el servidor)
-        function reloadLogs() {
-            fetch('http://localhost:3001/api/logs/reload')
-                .then(() => loadLogs());
-        }
+    function getTipoEvento(evento) {
+      evento = evento.toLowerCase();
+      if (evento.includes('failed') || evento.includes('fail')) return 'Fallidos';
+      if (evento.includes('login')) return 'Login';
+      if (evento.includes('upload')) return 'Upload';
+      if (evento.includes('download')) return 'Download';
+      if (evento.includes('error')) return 'Error';
+      return 'Otros';
+    }
 
-        // Muestra los logs en la tabla HTML
-        function renderTable(data) {
-            const tbody = document.querySelector('#logTable tbody');
-            tbody.innerHTML = '';
-            data.forEach(entry => {
-                const row = `<tr>
-                    <td><input type="checkbox"></td>
-                    <td>${entry.fecha}</td>
-                    <td>${entry.ip}</td>
-                    <td>${entry.evento}</td>
-                </tr>`;
-                tbody.innerHTML += row;
-            });
-        }
-
-        // Filtra los logs según lo que el usuario escribe en el buscador
-        function filterLogs() {
-            const query = document.getElementById('search').value.toLowerCase();
-            const filtered = logs.filter(entry =>
-                entry.fecha.toLowerCase().includes(query) ||
-                entry.ip.toLowerCase().includes(query) ||
-                entry.evento.toLowerCase().includes(query)
-            );
-            renderTable(filtered);
-        }
-
-        // Copia los logs seleccionados al portapapeles
-        function copySelected() {
-            const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-                .map(cb => cb.closest('tr').innerText)
-                .join('\n');
-            navigator.clipboard.writeText(selected);
-        }
-
-        // Muestra solo los eventos que contienen errores o fallos
-        function showErrorsOnly() {
-            const filtered = logs.filter(log =>
-                log.evento.toLowerCase().includes('error') ||
-                log.evento.toLowerCase().includes('fail')
-            );
-            renderTable(filtered);
-        }
-
-        // Alterna la visibilidad del gráfico de eventos
-        function toggleChart() {
-            const chartDiv = document.getElementById('chartContainer');
-            chartVisible = !chartVisible;
-            chartDiv.style.display = chartVisible ? 'block' : 'none';
-            if (chartVisible) renderChart();
-        }
-
-        // Dibuja el gráfico con los tipos de eventos
-        function renderChart() {
-            const eventCounts = {};
-
-            logs.forEach(log => {
-                const tipo = getTipoEvento(log.evento);
-                eventCounts[tipo] = (eventCounts[tipo] || 0) + 1;
-            });
-
-            const labels = Object.keys(eventCounts);
-            const data = Object.values(eventCounts);
-
-            const ctx = document.getElementById('eventChart').getContext('2d');
-
-            if (eventChart) eventChart.destroy(); // Elimina gráfico anterior si existe
-            eventChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Eventos',
-                        data: data,
-                        backgroundColor: [
-                            '#ff6384', '#36a2eb', '#ffcd56', '#4bc0c0', '#9966ff', '#ff9f40'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
-                }
-            });
-        }
-
-        // Clasifica el tipo de evento para usarlo en el gráfico
-        function getTipoEvento(evento) {
-            evento = evento.toLowerCase();
-            if (evento.includes('failed') || evento.includes('fail')) return 'Fallidos';
-            if (evento.includes('login')) return 'Login';
-            if (evento.includes('upload')) return 'Upload';
-            if (evento.includes('download')) return 'Download';
-            if (evento.includes('error')) return 'Error';
-            return 'Otros';
-        }
-    </script>
+    window.onload = () => loadLogs();
+  </script>
 </body>
 </html>

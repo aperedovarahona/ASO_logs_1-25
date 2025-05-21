@@ -1,40 +1,145 @@
+/* Estilos generales para el cuerpo de la página */
 body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  background-color: #1e1e1e;
-  color: #f0f0f0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 40px;
+  background-color: #121212;
+  color: #e0e0e0;
+  line-height: 1.6;
 }
 
+/* Estilo para el encabezado principal (h1) */
 h1 {
   color: #00ff99;
+  text-shadow: 0 0 5px #00ff99;
+  font-size: 2.8rem;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
-input[type="file"] {
-  margin: 10px 0;
+/* Contenedor para controles y gráficos */
+#controlsChartContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
 }
 
+/* Contenedor de controles individuales */
+#controlsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Estilo para etiquetas de formulario */
+label {
+  font-weight: 600;
+}
+
+/* Estilos para inputs, selects y campos de texto */
+input[type="file"],
+select,
+input[type="text"] {
+  padding: 10px 14px;
+  background-color: #1e1e1e;
+  border: 1px solid #00ff99;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 1rem;
+  width: 100%;
+}
+
+/* Estilo para botones */
+button {
+  background-color: #00ff99;
+  color: #000;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0, 255, 153, 0.4);
+  transition: all 0.3s ease;
+}
+
+/* Efecto hover para botones */
+button:hover {
+  background-color: #00ffaa;
+  box-shadow: 0 0 12px rgba(0, 255, 153, 0.6);
+  transform: translateY(-2px);
+}
+.charts-container {
+  display: flex;
+  gap: 20px; /* espacio entre gráficos, opcional */
+}
+.chart-wrapper {
+  /* Fija el tamaño del contenedor que envuelve el canvas */
+  flex: 0 0 250px;
+  max-width: 250px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chart-wrapper canvas {
+  /* Fija el tamaño visual del lienzo */
+  width: 250px !important;
+  height: 250px !important;
+}
+
+/* Contenedor para el área de búsqueda */
+#searchContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Campo de texto para búsqueda */
+#searchContainer input[type="text"] {
+  flex: 1;
+}
+
+/* Estilo para tablas */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  box-shadow: 0 0 10px rgba(0, 255, 153, 0.2);
 }
 
-th, td {
-  padding: 8px;
+/* Estilo para celdas de encabezado y contenido */
+th,
+td {
+  padding: 10px;
   border: 1px solid #333;
   text-align: left;
 }
 
-th {
+/* Encabezado de tabla */
+thead {
   background-color: #00ff99;
-  color: black;
+  color: #000;
 }
 
+/* Efecto hover para filas de tabla */
+tr:hover {
+  background-color: #2a2a2a;
+}
+
+/* Estilo para mensajes de alerta */
 .alert {
-  color: #ff4040;
-  font-weight: bold;
+  margin: 10px 0;
+  color: #ff6666;
 }
 
-.success {
-  color: #00ff99;
+/* Clase para ocultar elementos */
+.hidden {
+  display: none;
 }
