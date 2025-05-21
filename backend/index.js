@@ -70,7 +70,8 @@ app.post('/api/logs/upload', (req, res) => {
 
     // Si el tipo es FTP
     } else if (type === 'ftp') {
-        const ftpRegex = /\[(.*?)\] (\S+) (\S+) (upload|download|login|error) (.*?) (success|fail)/i;
+        const ftpRegex = /\[(.*?)\] (\S+) (\S+) (upload|download|login|error)(?: (\/\S+|\-))? (success|fail)/i;
+
         const stmt = db.prepare(`INSERT INTO ftp_logs (fecha, ip, usuario, accion, archivo, estado) VALUES (?, ?, ?, ?, ?, ?)`);
 
         lines.forEach(line => {
