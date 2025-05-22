@@ -230,9 +230,13 @@ pip install -r requirements.txt   # Si usas Python
 🔗 GitHub: [@aperedovarahona](https://github.com/aperedovarahona)
 
 **Jorge Torrico**
-📧 Correo: [@gmail.com](Jorge:torrjorge@gmail.com)  
+📧 Correo: [torrijorge736@gmail.com](Jorge:torrijorge736@gmail.com)  
 🔗 GitHub: [@JorgeDaviTC](https://github.com/JorgeDavidTC)
 
 **Oliver Rocha**
-📧 Correo: [@gmail.com](Oliver:oliversu61@gmail.com)  
+📧 Correo: [oliversu61@gmail.com](Oliver:oliversu61@gmail.com)  
 🔗 GitHub: [@oliver69-ux](https://github.com/oliver69-ux)
+
+**Gabriel Vera**
+📧 Correo: [gabrielvvpp@gmail.com](Gabriel:gabrielvvpp@gmail.com)
+🔗 GitHub: [@nv701](https://github.com/nv701)
