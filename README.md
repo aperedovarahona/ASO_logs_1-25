@@ -71,6 +71,7 @@ Un **analizador de logs** es una herramienta que permite interpretar archivos de
 ## 📦 Servicios Analizados
 
 ### 🌐 Apache HTTP Server
+
 - Peticiones HTTP
 - Recursos solicitados
 - IPs activas
@@ -79,6 +80,7 @@ Un **analizador de logs** es una herramienta que permite interpretar archivos de
 - Referencia cruzada con `goaccess`
 
 ### 📁 FTP (vsftpd, proftpd, etc.)
+
 - Archivos subidos/bajados
 - Errores de autenticación
 - Actividad por IP o usuario
@@ -89,28 +91,34 @@ Un **analizador de logs** es una herramienta que permite interpretar archivos de
 ## 🔍 Funciones de Análisis
 
 ### 1. Recolección de Logs
+
 - Logs históricos
 - Logs en tiempo real (cron o daemon)
 
 ### 2. Búsqueda y Filtrado
+
 - Por palabra clave
 - Por IP, fecha, servicio
 - Soporte para expresiones regulares
 - Operadores: `AND`, `OR`
 
 ### 3. Correlación de Eventos
+
 - Agrupamiento de intentos fallidos por IP
 - Detección de patrones sospechosos
 
 ### 4. Alertas Automáticas
+
 - Errores críticos (HTTP 500, FTP login failed)
 - Notificaciones (visual o por email, si se implementa)
 
 ### 5. Visualización y Clasificación
+
 - Eventos agrupados por tipo y severidad
 - Visualizaciones limpias y colores diferenciados
 
 ### 6. Reportes Automatizados
+
 - Diarios, semanales, mensuales
 - Exportación a CSV o PDF
 - Resumen de actividad por servicio
@@ -139,6 +147,7 @@ Un **analizador de logs** es una herramienta que permite interpretar archivos de
 ## 🖥️ Interfaz de Usuario
 
 🎛️ Módulos:
+
 - Visualizador de logs
 - Búsqueda por filtro o palabra
 - Alertas visuales
@@ -146,8 +155,9 @@ Un **analizador de logs** es una herramienta que permite interpretar archivos de
 - Botón de recarga
 
 🎨 Diseño:
+
 - Estilo profesional y responsivo
-- Codificación por colores según tipo de evento
+- Codificación por colores según tipo de evento.
 - Navegación clara y modular
 
 ---
@@ -168,12 +178,14 @@ Un **analizador de logs** es una herramienta que permite interpretar archivos de
 ## 📈 Reportes Generados
 
 ### Apache
+
 - Recursos más accedidos
 - IPs más activas
 - Errores más comunes
 - Estadísticas por fecha y hora
 
 ### FTP
+
 - Archivos subidos/bajados
 - Errores de login
 - Actividad por host/IP
@@ -211,19 +223,16 @@ pip install -r requirements.txt   # Si usas Python
 
 ---
 
-## 👨‍🎓 Autor del Proyecto
+## 👨‍🎓 Autores del Proyecto
 
-**Nombre Apellido**  
-📧 Correo: [tuemail@ejemplo.com](mailto:tuemail@ejemplo.com)  
-🔗 GitHub: [@tuusuario](https://github.com/tuusuario)
+**Alejandro Peredo**  
+📧 Correo: [aperedovarahona@gmail.com](Alejandro:aperedovarahona@gmail.com)  
+🔗 GitHub: [@aperedovarahona](https://github.com/aperedovarahona)
 
----
+**Jorge Torrico**
+📧 Correo: [@gmail.com](Jorge:torrjorge@gmail.com)  
+🔗 GitHub: [@JorgeDaviTC](https://github.com/JorgeDavidTC)
 
-## 📝 Licencia
-
-Este proyecto está bajo la licencia **MIT**.  
-Consulta el archivo `LICENSE` para más detalles.
-
----
-
-> 🎓 Proyecto desarrollado con el objetivo de demostrar preparación profesional y dominio en desarrollo backend, análisis de datos y administración de servicios Linux. Listo para ser presentado en defensa de tesis universitaria.
+**Oliver Rocha**
+📧 Correo: [@gmail.com](Oliver:oliversu61@gmail.com)  
+🔗 GitHub: [@oliver69-ux](https://github.com/oliver69-ux)
