@@ -1,0 +1,33 @@
+Wed May 21 16:07:53 2025 [pid 35315] CONNECT: Client "::ffff:192.168.0.109"
+Wed May 21 17:36:30 2025 [pid 40607] CONNECT: Client "192.168.0.109"
+Wed May 21 17:37:15 2025 [pid 40633] CONNECT: Client "192.168.0.109"
+Wed May 21 17:37:15 2025 [pid 40632] [alejandro ] FAIL LOGIN: Client "192.168.0.109"
+Wed May 21 17:37:16 2025 [pid 40635] CONNECT: Client "192.168.0.109"
+Wed May 21 17:37:16 2025 [pid 40634] [alejandro ] FAIL LOGIN: Client "192.168.0.109"
+Wed May 21 17:37:21 2025 [pid 40637] CONNECT: Client "192.168.0.109"
+Wed May 21 17:37:21 2025 [pid 40636] [alejandro ] FAIL LOGIN: Client "192.168.0.109"
+Wed May 21 17:37:22 2025 [pid 40639] CONNECT: Client "192.168.0.109"
+Wed May 21 17:37:22 2025 [pid 40638] [alejandro ] FAIL LOGIN: Client "192.168.0.109"
+Wed May 21 17:37:34 2025 [pid 40641] CONNECT: Client "192.168.0.109"
+Wed May 21 17:37:34 2025 [pid 40640] [alejandro] OK LOGIN: Client "192.168.0.109"
+Wed May 21 17:38:07 2025 [pid 40642] [alejandro] OK DOWNLOAD: Client "192.168.0.109", "/compartida/comandos_git.jpg", 674128 bytes, 2228.34Kbyte/sec
+Wed May 21 17:38:07 2025 [pid 40656] CONNECT: Client "192.168.0.109"
+Wed May 21 17:38:07 2025 [pid 40655] [alejandro] OK LOGIN: Client "192.168.0.109"
+Wed May 21 17:38:07 2025 [pid 40657] [alejandro] OK DOWNLOAD: Client "192.168.0.109", "/compartida/comandos_git.jpg", 674128 bytes, 1250.87Kbyte/sec
+Wed May 21 17:38:08 2025 [pid 40657] [alejandro] OK DOWNLOAD: Client "192.168.0.109", "/compartida/IMG_2801.jpeg", 669193 bytes, 1977.64Kbyte/sec
+Wed May 21 17:38:09 2025 [pid 40659] CONNECT: Client "192.168.0.109"
+Wed May 21 17:38:09 2025 [pid 40658] [alejandro] OK LOGIN: Client "192.168.0.109"
+Wed May 21 17:38:09 2025 [pid 40660] [alejandro] OK DOWNLOAD: Client "192.168.0.109", "/compartida/IMG_2801.jpeg", 669193 bytes, 1554.99Kbyte/sec
+Wed May 21 17:38:12 2025 [pid 40660] [alejandro] OK DOWNLOAD: Client "192.168.0.109", "/compartida/v14044g50000d0c1bonog65q2ith8130.mp4", 4354598 bytes, 1740.26Kbyte/sec
+Wed May 21 17:38:18 2025 [pid 40660] [alejandro] OK UPLOAD: Client "192.168.0.109", "/compartida/PruebaFTP.txt", 0.00Kbyte/sec
+Wed May 21 17:38:25 2025 [pid 40660] [alejandro] OK DOWNLOAD: Client "192.168.0.109", "/compartida/PruebaFTP.txt", 0.00Kbyte/sec
+Wed May 21 17:38:36 2025 [pid 40660] [alejandro] OK UPLOAD: Client "192.168.0.109", "/compartida/PruebaFTP.txt", 10 bytes, 0.63Kbyte/sec
+Wed May 21 17:39:56 2025 [pid 40660] [alejandro] OK UPLOAD: Client "192.168.0.109", "/compartida/IMG_2771.jpeg", 98525 bytes, 988.47Kbyte/sec
+Wed May 21 19:19:42 2025 [pid 41646] CONNECT: Client "192.168.0.109"
+Wed May 21 19:19:42 2025 [pid 41645] [alejandro] OK LOGIN: Client "192.168.0.109"
+Wed May 21 19:20:25 2025 [pid 41647] [alejandro] OK DOWNLOAD: Client "192.168.0.109", "/compartida/IMG_2771.jpeg", 98525 bytes, 1295.03Kbyte/sec
+Wed May 21 19:20:49 2025 [pid 41691] CONNECT: Client "192.168.0.109"
+Wed May 21 19:20:49 2025 [pid 41690] [alejandro] OK LOGIN: Client "192.168.0.109"
+Wed May 21 19:20:50 2025 [pid 41692] [alejandro] OK UPLOAD: Client "192.168.0.109", "/compartida/IMG_0818.jpeg", 2843012 bytes, 2425.71Kbyte/sec
+Wed May 21 19:21:29 2025 [pid 41692] [alejandro] OK DOWNLOAD: Client "192.168.0.109", "/compartida/IMG_0818.jpeg", 2843012 bytes, 714.10Kbyte/sec
+Wed May 21 19:21:32 2025 [pid 41692] [alejandro] FAIL DOWNLOAD: Client "192.168.0.109", "/compartida/IMG_0818.jpeg", 1057040 bytes, 1645.72Kbyte/sec

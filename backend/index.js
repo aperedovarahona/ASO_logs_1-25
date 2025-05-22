@@ -69,20 +69,27 @@ app.post('/api/logs/upload', (req, res) => {
         res.send({ status: 'Apache logs cargados' }); 
 
     // Si el tipo es FTP
-    } else if (type === 'ftp') {
-        const ftpRegex = /\[(.*?)\] (\S+) (\S+) (upload|download|login|error)(?: (\/\S+|\-))? (success|fail)/i;
+       } else if (type === 'ftp') {
+        // Regex para logs estilo vsftpd
+        const ftpRegex = /^(.{24}) \[pid \d+\](?: \[(.*?)\])? (OK|FAIL) (LOGIN|UPLOAD|DOWNLOAD): Client "(.*?)"/;
 
         const stmt = db.prepare(`INSERT INTO ftp_logs (fecha, ip, usuario, accion, archivo, estado) VALUES (?, ?, ?, ?, ?, ?)`);
 
         lines.forEach(line => {
             const match = line.match(ftpRegex);
             if (match) {
-                const [, fecha, ip, usuario, accion, archivo, estado] = match;
-                stmt.run(fecha, ip, usuario, accion, archivo, estado);
+                const [ , fecha, usuarioRaw, estado, accion, ip ] = match;
+
+                const usuario = usuarioRaw?.trim() || 'desconocido';
+                const archivo = accion === 'UPLOAD' || accion === 'DOWNLOAD' ? `${accion.toLowerCase()} (vsftpd)` : '-';
+
+                stmt.run(fecha.trim(), ip, usuario, accion.toLowerCase(), archivo, estado.toLowerCase());
             }
         });
+
         stmt.finalize();
-        res.send({ status: 'FTP logs cargados' });
+        res.send({ status: 'FTP logs cargados (vsftpd)' });
+
 
     } else {
         // Si el tipo de log no es válido
