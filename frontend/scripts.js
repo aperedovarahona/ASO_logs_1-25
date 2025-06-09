@@ -51,7 +51,7 @@ function renderTable(data) {
         <td>${entry.evento}</td>
       </tr>`;
     tbody.innerHTML += row;
-  });
+  }) ;
 }
 
 function filterLogs() {
