@@ -2,249 +2,157 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Analizador de Logs - FTP & Apache</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analizador de Logs – FTP & Apache</title>
+   <!-- El enlace al archivo CSS actual -->
+  <link id="themeStylesheet" rel="stylesheet" href="style_light.css">
+  <style>
+    /* Estilo rápido para que el botón se vea visible al principio */
+    #themeToggleBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
+      padding: 8px 12px;
+      background-color: #444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
 
+    #themeToggleBtn:hover {
+      background-color: #666;
+    }
+  </style>
+</head>
+
+<script>
+  const themeLink = document.getElementById('themeStylesheet');
+  const themeBtn = document.getElementById('themeToggleBtn');
+
+  // Cargar desde localStorage si ya había tema guardado
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  applyTheme(savedTheme);
+
+  function toggleTheme() {
+    const newTheme = themeLink.getAttribute('href') === 'style_light.css' ? 'dark' : 'light';
+    applyTheme(newTheme);
+  }
+
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      themeLink.setAttribute('href', 'style_dark.css');
+      themeBtn.textContent = 'Modo Claro';
+    } else {
+      themeLink.setAttribute('href', 'style_light.css');
+      themeBtn.textContent = 'Modo Oscuro';
+    }
+    localStorage.setItem('theme', theme);
+  }
+</script>
+
+<body>
+  <!-- Botón al inicio de la página -->
+  <button id="themeToggleBtn" onclick="toggleTheme()">Modo Oscuro</button>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 </head>
 <body>
-  <!-- Título principal -->
-  <h1>📊 Analizador de Logs - FTP & Apache</h1>
-
-  <!-- Contenedor principal con flex para controles y gráfico lado a lado -->
-<section id="controlsChartContainer" style="display:flex; gap:30px; align-items:flex-start;">
-  <!-- Controles -->
-  <div id="controlsContainer" style="flex: 1; max-width: 300px;">
-    <label for="fileInput">Seleccionar archivo de log:</label>
-    <input type="file" id="fileInput" />
-
-    <label for="logType">Tipo de log:</label>
-    <select id="logType">
-      <option value="apache">Apache</option>
-      <option value="ftp">FTP</option>
-    </select>
-
-    <button onclick="uploadFile()">Subir Log</button>
-    <button onclick="reloadLogs()">🔄 Recargar Log</button>
-    <button onclick="toggleChart()">📈 Ver Gráficas</button>
-  </div>
-
-  <!-- Contenedor del gráfico -->
-  <div id="chartContainer" style="flex: 2; display:none; gap: 20px; align-items: center; display: flex;">
-    <div class="chart-wrapper">
-      <canvas id="barChart" width="250" height="250"></canvas>
+  <h1>📊 Analizador de Logs – FTP & Apache</h1>
+  <section id="controlsChartContainer">
+    <div id="controlsContainer">
+      <button id="selectFileBtn">📁 Seleccionar Archivo</button>
+      <input type="file" id="fileInput" accept=".log,.txt" style="display:none"/>
+      <span id="fileName">Ningún archivo seleccionado</span>
+      
+      <select id="logType">
+        <option value="apache">Apache</option>
+        <option value="ftp">FTP</option>
+      </select>
+      
+      <div class="buttons">
+        <button id="uploadBtn">📤 Subir Log</button>
+        <button id="reloadBtn">🔄 Recargar Log</button>
+        <button id="showChartsBtn">📈 Ver Gráficas</button>
+      </div>
     </div>
-    <div class="chart-wrapper">
-      <canvas id="pieChart" width="250" height="250"></canvas>
-    </div>
-  </div>
-</section>
-
-<!-- Herramientas de búsqueda y filtrado - fuera del flex -->
-<section id="searchContainer" style="margin-top: 20px; max-width: 600px;">
-  <input
-    type="text"
-    id="search"
-    placeholder="🔍 Buscar en los logs..."
-    oninput="filterLogs()"
-    style="width: 100%; padding: 8px; font-size: 1rem;"
-  />
-  <div style="margin-top: 10px;">
-    <button onclick="copySelected()">📋 Copiar Seleccionados</button>
-    <button onclick="showErrorsOnly()">⚠️ Mostrar Errores</button>
-  </div>
-</section>
-
-
-  <!-- Mensajes de alerta -->
-  <div id="alerts" class="alert"></div>
-
-  <!-- Tabla de logs -->
-  <table id="logTable" border="1">
+  </section>
+  
+  <section id="searchContainer">
+    <input type="text" id="search" placeholder="🔍 Buscar en los logs..."/>
+    <button id="copyBtn">📋 Copiar Seleccionados</button>
+    <button id="errorsBtn">⚠️ Mostrar Errores</button>
+  </section>
+  
+  <div id="alerts"></div>
+  
+  <table id="logTable">
     <thead>
       <tr>
-        <th></th>
+        <th><input type="checkbox" id="selectAll"/></th>
         <th>Fecha</th>
-        <th>IP</th>
+        <th>IP/Usuario</th>
         <th>Evento</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
+  
+ <div id="graphModal" class="modal hidden">
+  <div class="modal-content">
+    <button class="close-modal">&times;</button>
+    <h2>📊 Gráficas de Eventos</h2>
+    <div class="charts-container">
+      <div class="chart-wrapper">
+        <canvas id="eventBarChart"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="eventPieChart"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="dailyLineChart"></canvas>
+      </div>
+    </div>
+    <div id="percentSummary"></div>
+  </div>
+</div>
 
-  <!-- Librería Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Script principal -->
-  <script>
-    let logs = [];
-    let chartVisible = false;
-    let barChart;
-    let pieChart;
-
-    function uploadFile() {
-      const file = document.getElementById('fileInput').files[0];
-      const type = document.getElementById('logType').value;
-      if (!file) return alert('Selecciona un archivo para subir');
-
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const content = e.target.result;
-        fetch('http://localhost:3001/api/logs/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content, type }),
-        }).then(() => loadLogs(type));
-      };
-      reader.readAsText(file);
-    }
-
-    function loadLogs(type = document.getElementById('logType').value) {
-      fetch(`http://localhost:3001/api/logs/${type}`)
-        .then((res) => res.json())
-        .then((data) => {
-          logs = data.logs.map((entry) => ({
-            fecha: entry.fecha,
-            ip: entry.ip,
-            evento: entry.metodo
-              ? `${entry.metodo} ${entry.recurso} (${entry.codigo})`
-              : `${entry.accion} ${entry.archivo || ''} [${entry.estado}]`,
-          }));
-          renderTable(logs);
-        });
-    }
-
-    function reloadLogs() {
-      fetch('http://localhost:3001/api/logs/reload').then(() => loadLogs());
-    }
-
-    function renderTable(data) {
-      const tbody = document.querySelector('#logTable tbody');
-      tbody.innerHTML = '';
-      data.forEach((entry) => {
-        const row = `
-          <tr>
-            <td><input type="checkbox"></td>
-            <td>${entry.fecha}</td>
-            <td>${entry.ip}</td>
-            <td>${entry.evento}</td>
-          </tr>`;
-        tbody.innerHTML += row;
-      });
-    }
-
-    function filterLogs() {
-      const query = document.getElementById('search').value.toLowerCase();
-      const filtered = logs.filter(
-        (entry) =>
-          entry.fecha.toLowerCase().includes(query) ||
-          entry.ip.toLowerCase().includes(query) ||
-          entry.evento.toLowerCase().includes(query)
-      );
-      renderTable(filtered);
-    }
-
-    function copySelected() {
-      const selected = Array.from(
-        document.querySelectorAll('input[type="checkbox"]:checked')
-      )
-        .map((cb) => cb.closest('tr').innerText)
-        .join('\n');
-      navigator.clipboard.writeText(selected);
-      alert('Logs copiados al portapapeles');
-    }
-
-    function showErrorsOnly() {
-      const filtered = logs.filter(
-        (log) =>
-          log.evento.toLowerCase().includes('error') ||
-          log.evento.toLowerCase().includes('fail')
-      );
-      renderTable(filtered);
-    }
-
-    function toggleChart() {
-      const chartDiv = document.getElementById('chartContainer');
-      chartVisible = !chartVisible;
-      chartDiv.style.display = chartVisible ? 'flex' : 'none';
-      if (chartVisible) renderCharts();
-    }
-
-    function renderCharts() {
-      const eventCounts = {};
-      logs.forEach((log) => {
-        const tipo = getTipoEvento(log.evento);
-        eventCounts[tipo] = (eventCounts[tipo] || 0) + 1;
-      });
-
-      const labels = Object.keys(eventCounts);
-      const data = Object.values(eventCounts);
-
-      // Bar Chart
-      const barCtx = document.getElementById('barChart').getContext('2d');
-      if (barChart) barChart.destroy();
-      barChart = new Chart(barCtx, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Cantidad de eventos',
-            data,
-            backgroundColor: '#36a2eb',
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 } },
-          },
-          plugins: {
-            legend: { display: false }
-          }
-        }
-      });
-
-      // Pie Chart
-      const pieCtx = document.getElementById('pieChart').getContext('2d');
-      if (pieChart) pieChart.destroy();
-      pieChart = new Chart(pieCtx, {
-        type: 'pie',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Eventos',
-            data,
-            backgroundColor: [
-  '#ff6384',
-  '#36a2eb',
-  '#ffcd56',
-  '#4bc0c0',
-  '#9966ff',
-  '#ff9f40',
-]
-
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'bottom' }
-          }
-        }
-      });
-    }
-
-    function getTipoEvento(evento) {
-      evento = evento.toLowerCase();
-      if (evento.includes('failed') || evento.includes('fail')) return 'Fallidos';
-      if (evento.includes('login')) return 'Login';
-      if (evento.includes('upload')) return 'Upload';
-      if (evento.includes('download')) return 'Download';
-      if (evento.includes('error')) return 'Error';
-      return 'Otros';
-    }
-
-    window.onload = () => loadLogs();
-  </script>
+  
+  <script src="scripts.js" defer></script>
 </body>
+<div id="detailModal" class="modal hidden">
+  <div class="modal-content" style="max-width: 95%; width: 95%; max-height: 90vh; overflow-y: auto;">
+    <button class="close-modal">&times;</button>
+    <h2 id="detailModalTitle">Detalles del Evento</h2>
+    <div class="charts-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+      <div class="chart-wrapper">
+        <h3>Actividad Diaria</h3>
+        <canvas id="detailBarChart"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <h3>Distribución por Estado</h3>
+        <canvas id="detailPieChart"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <h3>Actividad por Hora</h3>
+        <canvas id="hourlyChart"></canvas>
+      </div>
+      <div class="chart-wrapper" style="grid-column: span 2;">
+        <h3>Códigos de Estado/Acciones</h3>
+        <canvas id="statusChart"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <h3>Top 10 Clientes</h3>
+        <canvas id="userChart"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <h3>Distribución Detallada</h3>
+        <canvas id="ipChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
 </html>

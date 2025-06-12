@@ -1,0 +1,292 @@
+/* Estilos generales */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  line-height: 1.6;
+}
+
+/* Contenedor principal */
+#controlsChartContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* Controles */
+#controlsContainer, #searchContainer {
+  background: #f0f4ff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 51, 102, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+input, select, button {
+  padding: 8px 12px;
+  border: 1px solid #aaccee;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #1a1a1a;
+}
+
+button {
+  background-color: #3399ff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  border: none;
+}
+
+button:hover {
+  background-color: #0077dd;
+  box-shadow: 0 0 8px #3399ff;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Tabla */
+#logTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fdfdfd;
+  box-shadow: 0 0 10px rgba(0, 102, 204, 0.1);
+  margin-top: 20px;
+}
+
+#logTable th, #logTable td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+#logTable th {
+  background-color: #cce7ff;
+  color: #003366;
+  font-weight: bold;
+}
+
+#logTable tr:nth-child(even) {
+  background-color: #f2f9ff;
+}
+
+#logTable tr:hover {
+  background-color: #e6f2ff;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(200, 220, 255, 0.7);
+  z-index: 1000;
+  overflow: auto;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  margin: 5% auto;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 1200px;
+  box-shadow: 0 0 15px rgba(0, 102, 204, 0.2);
+  position: relative;
+}
+
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #0077dd;
+  z-index: 1001;
+}
+
+.close-modal:hover {
+  color: #000000;
+}
+
+/* Gráficos principales y detallados */
+#graphModal .modal-content,
+#detailModal .modal-content {
+  max-width: 95%;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: #ffffff;
+}
+
+#graphModal .charts-container,
+#detailModal .charts-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+#graphModal .charts-container canvas,
+#detailModal canvas {
+  width: 100% !important;
+  height: 400px !important;
+  min-height: 300px;
+  display: block;
+  margin: 0 auto;
+  background-color: #f4faff;
+  border-radius: 8px;
+}
+
+.chart-wrapper {
+  background: #f0f8ff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 102, 204, 0.1);
+}
+
+.chart-wrapper h3 {
+  margin-top: 0;
+  text-align: center;
+  color: #0077dd;
+  font-size: 14px;
+}
+
+/* Alertas */
+#alerts {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.alert {
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  color: white;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 0 8px rgba(0, 102, 204, 0.2);
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.alert.info {
+  background-color: #3399ff;
+  color: #ffffff;
+}
+
+.alert.success {
+  background-color: #33cc99;
+  color: #ffffff;
+}
+
+.alert.error {
+  background-color: #ff3366;
+}
+
+/* Resumen */
+.summary-box {
+  background: #e8f4ff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  color: #1a1a1a;
+}
+
+.summary-box h3 {
+  margin-top: 0;
+  color: #0077dd;
+}
+
+/* Nombre de archivo */
+#fileName {
+  margin-left: 10px;
+  font-style: italic;
+  color: #555;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Modal visible */
+.modal:not(.hidden) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  #controlsContainer, #searchContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #graphModal .charts-container,
+  #detailModal .charts-container {
+    grid-template-columns: 1fr;
+  }
+
+  #graphModal .modal-content,
+  #detailModal .modal-content {
+    width: 95%;
+    margin: 2% auto;
+    padding: 15px;
+  }
+}
+
+/* Estilos para evitar deformación de gráficos circulares */
+canvas {
+  display: block;
+  margin: 0 auto;
+  max-width: 400px;
+  aspect-ratio: 1 / 1;
+  height: auto !important;
+}
+
+.charts-container {
+  display: flex;
+  flex-direction: column; /* gráficos en columna */
+  gap: 20px;
+  max-width: 800px;
+  margin: auto;
+}
+
+.chart-wrapper {
+  width: 100%;
+  height: 400px;
+  /* Opcional: agregar borde o sombra para distinguirlos */
+  /* border: 1px solid #ccc; */
+}
+
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
