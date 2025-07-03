@@ -39,8 +39,8 @@ function parseApacheDate(dateStr) {
 
 const dbConfig = {
   host: 'localhost',
-  user: 'alejandro',
-  password: '1234',
+  user: 'jorge',
+  password: '4515',
   database: 'ASO',
   waitForConnections: true,
   connectionLimit: 10,
@@ -225,8 +225,10 @@ function parseFTPDate(dateStr) {
   return new Date(year, month, day, hour, minute, second);
 }
 
+
 function parseFTPLog(line) {
-  const regex = /^([A-Za-z]{3}\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\d{4}) \[pid \d+\] \[([^\]]+)\] FTP (command|response): Client "(::ffff:)??([\d.]+)", "(.*)"$/;
+  // Modificada para capturar el PID
+  const regex = /^([A-Za-z]{3}\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}\s+\d{4})\s+\[pid\s+(\d+)\]\s+\[([^\]]+)\]\s+FTP\s+(command|response):\s+Client\s+"(::ffff:)??([\d.]+)",\s+"(.*)"$/;
   const match = line.match(regex);
 
   if (match) {
@@ -234,11 +236,12 @@ function parseFTPLog(line) {
     console.log('Matched line:', line);
     console.log('Groups:', match);
 
-    const [, rawDate, usuario, tipo, , ip, contenido] = match;
+    const [, rawDate, pid, usuario, tipo, , ip, contenido] = match;
     const date = parseFTPDate(rawDate);
     if (isNaN(date.getTime())) return null;
 
     return {
+      pid: parseInt(pid), // Añadido el PID
       fecha: formatDateToSQL(date),
       ip_cliente: ip,
       usuario: usuario || null,
@@ -254,6 +257,8 @@ function parseFTPLog(line) {
 
   return null;
 }
+
+
 app.post('/api/logs/upload', async (req, res) => {
   const { content, type } = req.body;
   if (!content || !type) return res.status(400).json({ error: 'Missing content or type' });
