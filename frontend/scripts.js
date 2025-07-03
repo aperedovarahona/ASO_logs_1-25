@@ -23,8 +23,99 @@ function renderTable(data) {
         ${e.metodo ? `${e.metodo} ${e.recurso} (${e.codigo_estado})` : ''}
         ${e.accion ? `${e.accion} ${e.archivo || ''} [${e.estado || ''}] ${e.bytes ? `(${e.bytes} bytes)` : ''}` : ''}
       </td>
+      <td><button class="view-details-btn" data-log='${JSON.stringify(e)}'>🔍 Ver detalles</button></td>
     </tr>
   `).join('');
+  
+  // Agregar event listeners a los nuevos botones
+  document.querySelectorAll('.view-details-btn').forEach(btn => {
+    btn.addEventListener('click', () => showFullDetails(JSON.parse(btn.dataset.log)));
+  });
+}
+
+function showFullDetails(log) {
+  // Crear un modal para mostrar todos los detalles
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  `;
+  
+  const modalContent = document.createElement('div');
+  modalContent.className = 'modal-content';
+  modalContent.style.cssText = `
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    width: 800px;
+  `;
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '× Cerrar';
+  closeBtn.style.cssText = `
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+  `;
+  closeBtn.addEventListener('click', () => modal.remove());
+  
+  const title = document.createElement('h2');
+  title.textContent = '📋 Detalles completos del registro';
+  
+  const detailsTable = document.createElement('table');
+  detailsTable.style.cssText = `
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  `;
+  
+  detailsTable.innerHTML = `
+    <thead>
+      <tr>
+        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Campo</th>
+        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${Object.entries(log).map(([key, value]) => `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">${key}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; word-break: break-all;">${value !== null && value !== undefined ? value.toString() : 'N/A'}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+  
+  modalContent.appendChild(closeBtn);
+  modalContent.appendChild(title);
+  modalContent.appendChild(detailsTable);
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+  
+  // Cerrar modal al hacer clic fuera del contenido
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
 }
 
 function showSelectedFile() {
@@ -82,9 +173,6 @@ async function uploadFile() {
   }
 }
 
-
-// ... (el resto del código se mantiene igual)
-
 async function loadLogs() {
   try {
     const type = document.getElementById('logType').value;
@@ -120,21 +208,50 @@ function filterLogs() {
 }
 
 function copySelected() {
-  const selected = [...document.querySelectorAll('tbody input:checked')]
-    .map(cb => {
-      const row = cb.closest('tr');
-      return `${row.cells[1].textContent}\t${row.cells[2].textContent}\t${row.cells[3].textContent}`;
-    });
+  const selectedCheckboxes = [...document.querySelectorAll('tbody input:checked')];
   
-  if (!selected.length) return alert('Selecciona logs para copiar');
-  
-  navigator.clipboard.writeText(selected.join('\n'))
-    .then(() => showAlert(`${selected.length} registros copiados`, 'success'))
+  if (!selectedCheckboxes.length) {
+    return showAlert('Selecciona logs para copiar', 'warning');
+  }
+
+  const selectedLogs = selectedCheckboxes.map(cb => {
+    const row = cb.closest('tr');
+    const logData = JSON.parse(row.querySelector('.view-details-btn').dataset.log);
+    // Buscar el campo original_log y si no existe, usar una representación alternativa
+    return logData.original_log || 
+           (logData.metodo ? `${logData.ip_cliente || '-'} - - [${formatDateForOriginal(logData.fecha)}] "${logData.metodo} ${logData.recurso} ${logData.protocolo || 'HTTP/1.1'}" ${logData.codigo_estado} ${logData.bytes || '-'} "${logData.referencia || '-'}" "${logData.user_agent || '-'}"` : 
+           `${logData.fecha} ${logData.ip_cliente || '-'} ${logData.usuario || '-'} ${logData.accion} ${logData.archivo || ''} ${logData.estado || ''} ${logData.bytes || ''}`);
+  });
+
+  const textToCopy = selectedLogs.join('\n');
+
+  navigator.clipboard.writeText(textToCopy)
+    .then(() => showAlert(`${selectedLogs.length} registros copiados en su formato original`, 'success'))
     .catch(err => {
       console.error('Error al copiar:', err);
       showAlert('Error al copiar registros', 'error');
     });
 }
+
+function formatDateForOriginal(sqlDateStr) {
+  if (!sqlDateStr) return '';
+  try {
+    const date = new Date(sqlDateStr);
+    if (isNaN(date.getTime())) return sqlDateStr;
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = date.toLocaleString('default', { month: 'short' });
+    const year = date.getFullYear();
+    const time = date.toTimeString().split(' ')[0];
+    const timezone = date.toString().match(/\(([^)]+)\)/)?.[1] || '-0400';
+    
+    return `${day}/${month}/${year}:${time} ${timezone}`;
+  } catch (e) {
+    console.error('Error formateando fecha original:', e);
+    return sqlDateStr;
+  }
+}
+
 
 function showErrorsOnly() {
   const errorLogs = logs.filter(e => 
